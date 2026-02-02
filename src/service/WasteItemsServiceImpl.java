@@ -2,18 +2,17 @@ package service;
 
 import model.*;
 import repository.WasteItemsRepository;
+import repository.interfaces.WasteRepository;
 import exception.*;
-import repository.interfaces.CrudRepository;
 import service.interfaces.WasteItemsService;
 
 import java.util.List;
+import java.util.Optional;
 
 public class WasteItemsServiceImpl implements WasteItemsService {
+    private final WasteRepository repository;
 
-    private final CrudRepository<WasteItems, Integer> repository;
-    private static final int CENTER_CAPACITY = 1000;
-
-    public WasteItemsServiceImpl(CrudRepository<WasteItems, Integer> repository) {
+    public WasteItemsServiceImpl(WasteRepository repository) {
         this.repository = repository;
     }
 
@@ -21,10 +20,12 @@ public class WasteItemsServiceImpl implements WasteItemsService {
         item.validate();
         item.setCenterId(centerId);
 
-        if (repository.getById(item.getId()) != null)
+        Optional<WasteItems> existing = repository.findByIdOptional(item.getId());
+        if (existing.isPresent()) {
             throw new DuplicateResourceException("Waste item already exists");
+        }
 
-        double totalWeight = ((WasteItemsRepository) repository).getTotalWeightByCenter(centerId);
+        double totalWeight = repository.getTotalWeightByCenter(centerId);
         int centerCapacity = 1000;
 
         repository.create(item);
@@ -32,7 +33,7 @@ public class WasteItemsServiceImpl implements WasteItemsService {
     }
 
     public List<WasteItems> getAllWaste() {
-        return repository.getAll();
+        return repository.findAll();
     }
 
     public void removeWaste(int id) {
@@ -40,5 +41,10 @@ public class WasteItemsServiceImpl implements WasteItemsService {
             throw new ResourceNotFoundException("Waste item not found");
         repository.delete(id);
         System.out.println("Service: Waste item removed");
+    }
+    public List<WasteItems> getAllSortedByWeight() {
+        List<WasteItems> items = repository.findAll();
+        items.sort((a, b) -> Double.compare(a.getWeight(), b.getWeight())); // ЛЯМБДА
+        return items;
     }
 }
