@@ -1,0 +1,33 @@
+CREATE DATABASE waste_management;
+CREATE TABLE recycling_center(
+	center_id INT PRIMARY KEY,
+    center_name VARCHAR(50) NOT NULL,
+    capacity INT NOT NULL
+);
+CREATE TABLE waste_items(
+	id INT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    waste_type VARCHAR(10) CHECK(waste_type IN ('plastic','electronic','paper')),
+    weight DOUBLE NOT NULL,
+    recyclable BOOLEAN,
+    center_id INT,
+    FOREIGN KEY (center_id) REFERENCES recycling_center(center_id)
+);
+INSERT INTO recycling_center VALUES
+(1,'EcoCenter', 1000),
+(2, 'GreenPoint', 500);
+INSERT INTO waste_items VALUES
+(1, 'bottles','plastic', 15.5, TRUE, 1),
+(2, 'old phone', 'electronic', 0.3, TRUE, 2),
+(3, 'newspaper', 'paper', 2.0, TRUE, 1);
+
+CREATE TABLE IF NOT EXISTS address (
+    address_id INT PRIMARY KEY AUTO_INCREMENT,
+    street VARCHAR(100),
+    city VARCHAR(50),
+    postal_code VARCHAR(20)
+);
+
+ALTER TABLE recycling_center 
+ADD COLUMN address_id INT,
+ADD FOREIGN KEY (address_id) REFERENCES address(address_id);
